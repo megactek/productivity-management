@@ -1,0 +1,9 @@
+{
+    "theme": "system",
+    "notifications": true,
+    "completionGoal": 5,
+    "workingHours": {
+        "start": "09:00",
+        "end": "17:00"
+    }
+}

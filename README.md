@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskFlow
+
+A super lightweight, performant React/Next.js todo and project management application that runs as a service on macOS. Zero authentication, JSON-based storage, maximum simplicity with powerful features.
+
+## Features
+
+- **Todo Management**: Create, edit, and track tasks with ease
+- **Project Organization**: Group related tasks into projects
+- **Note Taking**: Capture important information alongside your tasks
+- **Notification System**: Stay on top of due dates and important tasks
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18.0.0 or later
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/taskflow.git
+cd taskflow
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── components/          # UI Components (modular, reusable)
+│   ├── todo/           # Todo-specific components
+│   ├── project/        # Project-specific components
+│   ├── notes/          # Notes-specific components
+│   └── shared/         # Shared UI components
+├── hooks/              # Custom React hooks (data management)
+├── services/           # Business logic layer
+├── types/              # TypeScript definitions
+├── utils/              # Helper functions
+├── stores/             # JSON data management
+└── data/               # JSON storage files
+```
 
-## Learn More
+## Built With
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js](https://nextjs.org/) - The React framework
+- [Tailwind CSS](https://tailwindcss.com/) - For styling
+- [Headless UI](https://headlessui.com/) - Unstyled UI components
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.

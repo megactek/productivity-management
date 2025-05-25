@@ -1,103 +1,220 @@
-import Image from "next/image";
+"use client";
+
+import { useAppDataContext } from "@/context/AppDataContext";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import Link from "next/link";
+import { format, isAfter, isBefore, addDays, parseISO } from "date-fns";
+import { Clock, AlertTriangle, BarChart3 } from "lucide-react";
+import { Progress } from "@/components/ui/Progress";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { todos, projects, notes } = useAppDataContext();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Calculate statistics
+  const activeTodos = todos.filter((todo) => todo.status === "pending");
+  const completedTodos = todos.filter((todo) => todo.status === "completed");
+  const overdueTodos = todos.filter(
+    (todo) => todo.status === "pending" && todo.dueDate && isBefore(parseISO(todo.dueDate), new Date())
+  );
+
+  const activeProjects = projects.filter((project) => project.status === "active");
+  const completedProjects = projects.filter((project) => project.status === "completed");
+
+  // Get upcoming tasks (due in next 7 days)
+  const upcomingTodos = todos
+    .filter(
+      (todo) =>
+        todo.status === "pending" &&
+        todo.dueDate &&
+        isAfter(parseISO(todo.dueDate), new Date()) &&
+        isBefore(parseISO(todo.dueDate), addDays(new Date(), 7))
+    )
+    .sort((a, b) => parseISO(a.dueDate!).getTime() - parseISO(b.dueDate!).getTime());
+
+  // Get projects with highest progress
+  const sortedProjects = [...activeProjects].sort((a, b) => b.progress - a.progress);
+
+  // Calculate completion rate
+  const completionRate = todos.length > 0 ? Math.round((completedTodos.length / todos.length) * 100) : 0;
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome to TaskFlow, your lightweight task management system.</p>
+
+        {/* Stats Overview */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Tasks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeTodos.length}</div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">Active tasks</p>
+                <span className="text-xs text-green-500">{completedTodos.length} completed</span>
+              </div>
+              <Progress className="h-1 mt-2" value={completionRate} />
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full" size="sm">
+                <Link href="/todos">View Tasks</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Projects</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeProjects.length}</div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">Active projects</p>
+                <span className="text-xs text-green-500">{completedProjects.length} completed</span>
+              </div>
+              <Progress
+                className="h-1 mt-2"
+                value={
+                  activeProjects.length > 0
+                    ? Math.round(activeProjects.reduce((sum, p) => sum + p.progress, 0) / activeProjects.length)
+                    : 0
+                }
+              />
+            </CardContent>
+            <CardFooter>
+              <Button asChild variant="outline" className="w-full" size="sm">
+                <Link href="/projects">View Projects</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{notes.length}</div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">Saved notes</p>
+                {notes.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    Last updated: {format(parseISO(notes[0].updatedAt || notes[0].createdAt), "MMM d")}
+                  </span>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button asChild variant="outline" className="w-full" size="sm">
+                <Link href="/notes">View Notes</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className={overdueTodos.length > 0 ? "border-red-200 dark:border-red-900" : ""}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
+                Overdue
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">{overdueTodos.length}</div>
+              <p className="text-xs text-muted-foreground mt-2">Tasks requiring attention</p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild variant="destructive" className="w-full" size="sm">
+                <Link href="/todos">View Overdue</Link>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Upcoming Tasks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-blue-500" />
+                Upcoming Tasks
+              </CardTitle>
+              <CardDescription>Tasks due in the next 7 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {upcomingTodos.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">No upcoming tasks due soon</div>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingTodos.slice(0, 5).map((todo) => (
+                    <div key={todo.id} className="flex items-center justify-between border-b pb-2">
+                      <div>
+                        <p className="font-medium">{todo.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {todo.dueDate && format(parseISO(todo.dueDate), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <div
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          isBefore(parseISO(todo.dueDate!), addDays(new Date(), 2))
+                            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                        }`}
+                      >
+                        {isBefore(parseISO(todo.dueDate!), addDays(new Date(), 2)) ? "Urgent" : "Upcoming"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+            {upcomingTodos.length > 0 && (
+              <CardFooter>
+                <Button asChild variant="ghost" className="w-full" size="sm">
+                  <Link href="/todos">View All Tasks</Link>
+                </Button>
+              </CardFooter>
+            )}
+          </Card>
+
+          {/* Project Progress */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-green-500" />
+                Project Progress
+              </CardTitle>
+              <CardDescription>Status of your active projects</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {activeProjects.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">No active projects</div>
+              ) : (
+                <div className="space-y-4">
+                  {sortedProjects.slice(0, 4).map((project) => (
+                    <div key={project.id}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium">{project.name}</span>
+                        <span className="text-sm">{project.progress}%</span>
+                      </div>
+                      <Progress value={project.progress} className="h-2" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+            {activeProjects.length > 0 && (
+              <CardFooter>
+                <Button asChild variant="ghost" className="w-full" size="sm">
+                  <Link href="/projects">View All Projects</Link>
+                </Button>
+              </CardFooter>
+            )}
+          </Card>
+        </div>
+      </div>
+    </AppLayout>
   );
 }
