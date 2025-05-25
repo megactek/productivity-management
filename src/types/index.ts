@@ -119,6 +119,9 @@ export interface NoteImage {
   type: string;
   size: number;
   createdAt: string;
+  originalSize?: number; // Original file size before processing
+  width?: number; // Image width in pixels
+  height?: number; // Image height in pixels
 }
 
 export interface NoteTag {

@@ -22,23 +22,27 @@ export function NoteCard({ note, onClick, onEdit, onDelete, onFavoriteToggle, co
 
   // Format the content as a preview (strip markdown/HTML and limit to ~100 chars)
   const contentPreview =
-    note.content
-      .replace(/[#*`_~>]/g, "") // Remove markdown special chars
-      .replace(/<[^>]*>?/gm, "") // Remove HTML tags
-      .slice(0, compact ? 50 : 100) + (note.content.length > (compact ? 50 : 100) ? "..." : "");
+    note?.content
+      ?.replace(/[#*`_~>]/g, "") // Remove markdown special chars
+      ?.replace(/<[^>]*>?/gm, "") // Remove HTML tags
+      ?.replace(/!\[.*?\]\(.*?\)/g, "[Image]") // Replace image markdown with [Image]
+      ?.slice(0, compact ? 50 : 100) + (note?.content?.length > (compact ? 50 : 100) ? "..." : "");
 
   // Format the date for display
-  const updatedDate = formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true });
+  const updatedDate = note?.updatedAt ? formatDistanceToNow(new Date(note?.updatedAt), { addSuffix: true }) : null;
 
   // Count images and links
   const imageCount = note.images?.length || 0;
   const hasRelatedItems =
-    (note.relatedNotes && note.relatedNotes.length > 0) || (note.relatedTodos && note.relatedTodos.length > 0);
+    (note?.relatedNotes && note.relatedNotes?.length > 0) || (note?.relatedTodos && note?.relatedTodos?.length > 0);
+
+  // Get the first image thumbnail to display (if any)
+  const firstImageThumbnail = note?.images && note?.images?.length > 0 ? note?.images[0]?.thumbnail : null;
 
   return (
     <Card
       className={`group cursor-pointer transition-all duration-200 ${isHovering ? "shadow-md" : ""} ${
-        note.isFavorite ? "border-amber-200 bg-amber-50 dark:bg-amber-950/20" : ""
+        note?.isFavorite ? "border-amber-200 bg-amber-50 dark:bg-amber-950/20" : ""
       }`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -47,18 +51,18 @@ export function NoteCard({ note, onClick, onEdit, onDelete, onFavoriteToggle, co
       <CardHeader className={compact ? "p-4" : "p-6"}>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg truncate" style={{ maxWidth: "85%" }}>
-            {note.title}
+            {note?.title}
           </CardTitle>
-          {note.isFavorite && (
+          {note?.isFavorite && (
             <StarIcon
               className="h-5 w-5 text-amber-500"
               onClick={(e) => {
                 e.stopPropagation();
-                onFavoriteToggle?.(note.id);
+                onFavoriteToggle?.(note?.id);
               }}
             />
           )}
-          {!note.isFavorite && isHovering && (
+          {!note?.isFavorite && isHovering && (
             <StarIcon
               className="h-5 w-5 text-gray-300 hover:text-amber-500"
               onClick={(e) => {
@@ -72,6 +76,28 @@ export function NoteCard({ note, onClick, onEdit, onDelete, onFavoriteToggle, co
       </CardHeader>
 
       <CardContent className={compact ? "p-4 pt-0" : "p-6 pt-0"}>
+        {firstImageThumbnail && !compact && (
+          <div className="mb-3 overflow-hidden rounded-md relative">
+            <img
+              src={firstImageThumbnail}
+              alt="Note thumbnail"
+              className="w-full h-auto object-cover max-h-32"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                // Use a placeholder image if the thumbnail fails to load
+                target.src = "/placeholder-image.png";
+                target.alt = "Image preview not available";
+                target.className = target.className + " opacity-50";
+              }}
+            />
+            {imageCount > 1 && (
+              <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                +{imageCount - 1} more
+              </div>
+            )}
+          </div>
+        )}
         <p className="text-sm text-gray-700 dark:text-gray-300">{contentPreview}</p>
       </CardContent>
 
@@ -90,18 +116,18 @@ export function NoteCard({ note, onClick, onEdit, onDelete, onFavoriteToggle, co
             </div>
           )}
 
-          {note.tags && note.tags.length > 0 && (
+          {note?.tags && note?.tags?.length > 0 && (
             <div className="flex items-center gap-1">
               <TagIcon className="h-4 w-4" />
               {!compact &&
-                note.tags.slice(0, 2).map((tag) => (
+                note?.tags?.slice(0, 2).map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
                   </Badge>
                 ))}
-              {!compact && note.tags.length > 2 && (
+              {!compact && note?.tags?.length > 2 && (
                 <Badge variant="outline" className="text-xs">
-                  +{note.tags.length - 2}
+                  +{note?.tags?.length - 2}
                 </Badge>
               )}
             </div>
@@ -129,7 +155,7 @@ export function NoteCard({ note, onClick, onEdit, onDelete, onFavoriteToggle, co
               className="text-red-500 hover:text-red-700 hover:bg-red-50"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(note.id);
+                onDelete(note?.id);
               }}
             >
               Delete

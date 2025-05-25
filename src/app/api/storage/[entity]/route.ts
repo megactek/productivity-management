@@ -101,9 +101,10 @@ function restoreFromBackup(entity: string, backupId: string, filename?: string):
 /**
  * GET handler - Read data
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ entity: string }> }) {
+  const { entity } = await params;
   const searchParams = request.nextUrl.searchParams;
-  const entity = searchParams.get("entity") || "";
+  // const entity = searchParams.get("entity") || "";
   const filename = searchParams.get("filename") || undefined;
   const operation = searchParams.get("operation") || "read";
 
@@ -132,8 +133,8 @@ export async function GET(request: NextRequest) {
 /**
  * POST handler - Write data, create backup, or restore
  */
-export async function POST(request: NextRequest) {
-  const entity = request.nextUrl.searchParams.get("entity") || "";
+export async function POST(request: NextRequest, { params }: { params: Promise<{ entity: string }> }) {
+  const { entity } = await params;
   const filename = request.nextUrl.searchParams.get("filename") || undefined;
   const operation = request.nextUrl.searchParams.get("operation") || "write";
 

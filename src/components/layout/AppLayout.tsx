@@ -25,7 +25,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [taskDueDate, setTaskDueDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { addTodo, todos, projects } = useAppDataContext();
+  const { addTodo, todos, projects, notes } = useAppDataContext();
   const { navigateToTodos } = useAppNavigation();
   const { ErrorBoundary } = useErrorBoundary();
 
@@ -64,7 +64,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Sidebar
           todoCount={todos.filter((t) => t.status === "pending").length}
           projectCount={projects.filter((p) => p.status === "active").length}
-          noteCount={5}
+          noteCount={notes?.length}
         />
         <ErrorBoundary
           fallback={

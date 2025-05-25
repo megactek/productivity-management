@@ -143,11 +143,31 @@ export class NotesService {
         throw new Error(`Note with id ${noteId} not found`);
       }
 
+      // Validate image data
+      if (!image.url) {
+        throw new Error("Image URL is required");
+      }
+
+      // Create a new image object with all required fields
       const newImage: NoteImage = {
         ...image,
         id: uuidv4(),
         createdAt: new Date().toISOString(),
       };
+
+      // Ensure we have a thumbnail
+      if (!newImage.thumbnail) {
+        newImage.thumbnail = newImage.url;
+      }
+
+      // Log image details for debugging
+      console.log(`Adding image to note ${noteId}:`, {
+        id: newImage.id,
+        name: newImage.name,
+        size: newImage.size,
+        type: newImage.type,
+        dimensions: newImage.width && newImage.height ? `${newImage.width}x${newImage.height}` : "unknown",
+      });
 
       const updatedNote: Note = {
         ...notes[noteIndex],
@@ -327,7 +347,18 @@ export class NotesService {
    */
   private async createNoteVersion(version: Omit<NoteVersion, "id">): Promise<NoteVersion> {
     try {
-      const versions = await this.getNoteVersions(version.noteId);
+      let versions: NoteVersion[] = [];
+      try {
+        versions = await this.getNoteVersions(version.noteId);
+        // Ensure versions is an array
+        if (!Array.isArray(versions)) {
+          console.warn("Note versions is not an array, initializing with empty array");
+          versions = [];
+        }
+      } catch (error) {
+        console.warn("Failed to get note versions, initializing with empty array:", error);
+        versions = [];
+      }
 
       const newVersion: NoteVersion = {
         ...version,
@@ -347,10 +378,12 @@ export class NotesService {
    */
   async getNoteVersions(noteId: string): Promise<NoteVersion[]> {
     try {
-      return await storageService.read<NoteVersion[]>(`note_versions_${noteId}`).catch(() => []);
+      const versions = await storageService.read<NoteVersion[]>(`note_versions_${noteId}`);
+      // Ensure we always return an array
+      return Array.isArray(versions) ? versions : [];
     } catch (error) {
       console.error("Failed to get note versions:", error);
-      throw new Error("Failed to retrieve note versions");
+      return []; // Return empty array instead of throwing
     }
   }
 

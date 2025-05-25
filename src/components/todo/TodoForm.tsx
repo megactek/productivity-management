@@ -154,8 +154,9 @@ export function TodoForm({ initialData, onSubmit, onCancel, isEditing = false, p
   const activeProjects = projects.filter((project) => project.status === "active");
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full">
+      {/* Basic Task Information */}
+      <div className="space-y-2 w-full">
         <label htmlFor="title" className="text-sm font-medium">
           Title <span className="text-destructive">*</span>
         </label>
@@ -169,7 +170,7 @@ export function TodoForm({ initialData, onSubmit, onCancel, isEditing = false, p
         {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 w-full">
         <label htmlFor="description" className="text-sm font-medium">
           Description
         </label>
@@ -181,77 +182,52 @@ export function TodoForm({ initialData, onSubmit, onCancel, isEditing = false, p
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="dueDate" className="text-sm font-medium">
-          Due Date
-        </label>
-        <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Priority</label>
-        <div className="flex space-x-2">
-          <Button
-            type="button"
-            variant={priority === "low" ? "secondary" : "outline"}
-            size="sm"
-            onClick={() => setPriority("low")}
-          >
-            Low
-          </Button>
-          <Button
-            type="button"
-            variant={priority === "medium" ? "secondary" : "outline"}
-            size="sm"
-            onClick={() => setPriority("medium")}
-          >
-            Medium
-          </Button>
-          <Button
-            type="button"
-            variant={priority === "high" ? "secondary" : "outline"}
-            size="sm"
-            onClick={() => setPriority("high")}
-          >
-            High
-          </Button>
-        </div>
-      </div>
-
-      {isEditing && (
+      {/* Due Date and Priority - Grid Layout */}
+      <div className="grid grid-cols-2 gap-4 w-full">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Status</label>
-          <div className="flex space-x-2">
+          <label htmlFor="dueDate" className="text-sm font-medium">
+            Due Date
+          </label>
+          <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Priority</label>
+          <div className="flex space-x-1">
             <Button
               type="button"
-              variant={status === "pending" ? "secondary" : "outline"}
+              variant={priority === "low" ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setStatus("pending")}
+              onClick={() => setPriority("low")}
+              className="flex-1"
             >
-              Pending
+              Low
             </Button>
             <Button
               type="button"
-              variant={status === "in-progress" ? "secondary" : "outline"}
+              variant={priority === "medium" ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setStatus("in-progress")}
+              onClick={() => setPriority("medium")}
+              className="flex-1"
             >
-              In Progress
+              Medium
             </Button>
             <Button
               type="button"
-              variant={status === "completed" ? "secondary" : "outline"}
+              variant={priority === "high" ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setStatus("completed")}
+              onClick={() => setPriority("high")}
+              className="flex-1"
             >
-              Completed
+              High
             </Button>
           </div>
         </div>
-      )}
+      </div>
 
+      {/* Project Selection */}
       {activeProjects.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <label htmlFor="project" className="text-sm font-medium">
             Project
           </label>
@@ -270,130 +246,168 @@ export function TodoForm({ initialData, onSubmit, onCancel, isEditing = false, p
         </div>
       )}
 
-      {/* Tags Input */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Tags</label>
-        <div className="flex gap-2">
-          <Input
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            placeholder="Add a tag"
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddTag();
-              }
-            }}
-          />
-          <Button type="button" onClick={handleAddTag} size="sm">
-            Add
-          </Button>
+      {/* Status Selection (only when editing) */}
+      {isEditing && (
+        <div className="space-y-2 w-full">
+          <label className="text-sm font-medium">Status</label>
+          <div className="flex space-x-2">
+            <Button
+              type="button"
+              variant={status === "pending" ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setStatus("pending")}
+              className="flex-1"
+            >
+              Pending
+            </Button>
+            <Button
+              type="button"
+              variant={status === "in-progress" ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setStatus("in-progress")}
+              className="flex-1"
+            >
+              In Progress
+            </Button>
+            <Button
+              type="button"
+              variant={status === "completed" ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setStatus("completed")}
+              className="flex-1"
+            >
+              Completed
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Tags and Subtasks - Grid Layout */}
+      <div className="grid grid-cols-2 gap-4 w-full">
+        {/* Tags Input */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tags</label>
+          <div className="flex gap-2">
+            <Input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="Add a tag"
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
+            />
+            <Button type="button" onClick={handleAddTag} size="sm">
+              Add
+            </Button>
+          </div>
+
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="inline-flex items-center bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs"
+                >
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {tags.map((tag) => (
-              <div
-                key={tag}
-                className="inline-flex items-center bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs"
-              >
-                #{tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-1 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+        {/* Subtasks */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Subtasks</label>
+
+          <div className="flex gap-2">
+            <Input
+              value={newSubtask}
+              onChange={(e) => setNewSubtask(e.target.value)}
+              placeholder="Add a subtask"
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddSubtask();
+                }
+              }}
+            />
+            <Button type="button" onClick={handleAddSubtask} size="sm">
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
-        )}
-      </div>
 
-      {/* Subtasks */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Subtasks</label>
-
-        <div className="flex gap-2">
-          <Input
-            value={newSubtask}
-            onChange={(e) => setNewSubtask(e.target.value)}
-            placeholder="Add a subtask"
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddSubtask();
-              }
-            }}
-          />
-          <Button type="button" onClick={handleAddSubtask} size="sm">
-            <Plus className="h-4 w-4" />
-          </Button>
+          {subtasks.length > 0 && (
+            <div className="space-y-2 mt-2 max-h-32 overflow-y-auto pr-1">
+              {subtasks.map((subtask) => (
+                <div key={subtask.id} className="flex items-center gap-2 group">
+                  <Checkbox
+                    id={`subtask-${subtask.id}`}
+                    checked={subtask.completed}
+                    onCheckedChange={(checked) => handleToggleSubtask(subtask.id, checked === true)}
+                  />
+                  <label
+                    htmlFor={`subtask-${subtask.id}`}
+                    className={`text-sm flex-1 ${subtask.completed ? "line-through text-muted-foreground" : ""}`}
+                  >
+                    {subtask.title}
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                    onClick={() => handleRemoveSubtask(subtask.id)}
+                  >
+                    <Trash2 className="h-3 w-3 text-muted-foreground" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
-        {subtasks.length > 0 && (
-          <div className="space-y-2 mt-2">
-            {subtasks.map((subtask) => (
-              <div key={subtask.id} className="flex items-center gap-2 group">
-                <Checkbox
-                  id={`subtask-${subtask.id}`}
-                  checked={subtask.completed}
-                  onCheckedChange={(checked) => handleToggleSubtask(subtask.id, checked === true)}
-                />
-                <label
-                  htmlFor={`subtask-${subtask.id}`}
-                  className={`text-sm flex-1 ${subtask.completed ? "line-through text-muted-foreground" : ""}`}
-                >
-                  {subtask.title}
-                </label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                  onClick={() => handleRemoveSubtask(subtask.id)}
-                >
-                  <Trash2 className="h-3 w-3 text-muted-foreground" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Image Upload (Mock Implementation) */}
-      <div className="space-y-2">
+      <div className="space-y-2 w-full">
         <label className="text-sm font-medium">Images</label>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => document.getElementById("image-upload")?.click()}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Images
-          </Button>
-          <input
-            id="image-upload"
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleImageChange}
-          />
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full flex items-center justify-center"
+          onClick={() => document.getElementById("image-upload")?.click()}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Upload Images
+        </Button>
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleImageChange}
+        />
 
-        {/* Display existing images */}
-        {existingImages.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+        {/* Display existing and selected images */}
+        {(existingImages.length > 0 || images.length > 0) && (
+          <div className="grid grid-cols-4 gap-2 mt-2">
+            {/* Display existing images */}
             {existingImages.map((image) => (
-              <div key={image.id} className="relative w-20 h-20">
+              <div key={image.id} className="relative w-full aspect-square">
                 <Image
                   src={image.thumbnail || image.url}
                   alt={image.name || "Task attachment"}
@@ -412,14 +426,10 @@ export function TodoForm({ initialData, onSubmit, onCancel, isEditing = false, p
                 </Button>
               </div>
             ))}
-          </div>
-        )}
 
-        {/* Display selected images (would be implemented in a real app) */}
-        {images.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+            {/* Display selected images (would be implemented in a real app) */}
             {images.map((file, index) => (
-              <div key={index} className="relative w-20 h-20">
+              <div key={index} className="relative w-full aspect-square">
                 <div className="w-full h-full flex items-center justify-center border rounded bg-muted text-xs text-center p-1 overflow-hidden">
                   {file.name}
                 </div>

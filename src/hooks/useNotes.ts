@@ -125,15 +125,30 @@ export function useNotes() {
     async (noteId: string, file: File): Promise<NoteImage> => {
       try {
         clearError();
-        // For client-side, create a blob URL for the image
-        const url = URL.createObjectURL(file);
+
+        // Process the image to reduce file size while maintaining quality
+        const processedImage = await processImage(file);
+
+        // Convert the blob to a data URL for persistent storage
+        const dataUrl = await blobToDataURL(processedImage.blob);
+
+        // Log for debugging
+        console.log(`Processing image for note ${noteId}:`, {
+          name: file.name,
+          originalSize: file.size,
+          processedSize: processedImage.size,
+          dimensions: `${processedImage.width}x${processedImage.height}`,
+        });
 
         const image: Omit<NoteImage, "id" | "createdAt"> = {
-          url,
+          url: dataUrl,
           name: file.name,
-          type: file.type,
-          size: file.size,
-          thumbnail: url, // Simple implementation - in prod would generate thumbnail
+          type: processedImage.type,
+          size: processedImage.size,
+          thumbnail: await createThumbnail(processedImage.blob),
+          originalSize: file.size, // Store original size for reference
+          width: processedImage.width,
+          height: processedImage.height,
         };
 
         const updatedNote = await notesService.addImageToNote(noteId, image);
@@ -150,6 +165,163 @@ export function useNotes() {
     },
     [clearError, setError]
   );
+
+  // Helper function to convert a blob to a data URL
+  const blobToDataURL = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to convert blob to data URL"));
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  // Process image to reduce file size while maintaining quality
+  const processImage = async (
+    file: File
+  ): Promise<{
+    blob: Blob;
+    type: string;
+    size: number;
+    width: number;
+    height: number;
+  }> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Get original dimensions
+          const originalWidth = img.width;
+          const originalHeight = img.height;
+
+          // Set max dimensions (maintain aspect ratio)
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1080;
+
+          let width = originalWidth;
+          let height = originalHeight;
+
+          // Resize if larger than max dimensions
+          if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+            if (width / height > MAX_WIDTH / MAX_HEIGHT) {
+              // Width is the limiting factor
+              width = MAX_WIDTH;
+              height = Math.round(originalHeight * (MAX_WIDTH / originalWidth));
+            } else {
+              // Height is the limiting factor
+              height = MAX_HEIGHT;
+              width = Math.round(originalWidth * (MAX_HEIGHT / originalHeight));
+            }
+          }
+
+          // Create canvas for resizing
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob with quality setting
+          const QUALITY = 0.85; // 85% quality - good balance between quality and size
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create image blob"));
+                return;
+              }
+              resolve({
+                blob,
+                type: blob.type,
+                size: blob.size,
+                width,
+                height,
+              });
+            },
+            file.type,
+            QUALITY
+          );
+        };
+
+        img.onerror = () => {
+          reject(new Error("Failed to load image"));
+        };
+
+        img.src = event.target?.result as string;
+      };
+
+      reader.onerror = () => {
+        reject(new Error("Failed to read file"));
+      };
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Create thumbnail for image preview
+  const createThumbnail = async (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Set thumbnail dimensions
+          const THUMB_WIDTH = 200;
+          const THUMB_HEIGHT = 200;
+
+          // Calculate thumbnail dimensions (maintain aspect ratio)
+          const aspectRatio = img.width / img.height;
+          let width = THUMB_WIDTH;
+          let height = THUMB_HEIGHT;
+
+          if (aspectRatio > 1) {
+            // Landscape
+            height = THUMB_WIDTH / aspectRatio;
+          } else {
+            // Portrait
+            width = THUMB_HEIGHT * aspectRatio;
+          }
+
+          // Create canvas for thumbnail
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to data URL
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(dataUrl);
+        };
+
+        img.onerror = () => {
+          reject(new Error("Failed to load image for thumbnail"));
+        };
+
+        img.src = event.target?.result as string;
+      };
+
+      reader.onerror = () => {
+        reject(new Error("Failed to read file for thumbnail"));
+      };
+
+      reader.readAsDataURL(blob);
+    });
+  };
 
   // Remove image from note
   const removeImageFromNote = useCallback(

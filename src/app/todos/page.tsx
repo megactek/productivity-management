@@ -120,6 +120,7 @@ export default function TodosPage() {
           onClose={() => setIsFormOpen(false)}
           title={editingTodo ? "Edit Task" : "Add New Task"}
           description={editingTodo ? "Update the details of your task." : "Create a new task to track."}
+          className="max-w-lg"
         >
           <TodoForm
             initialData={editingTodo}

@@ -51,14 +51,19 @@ export default function NotesPage() {
 
   const handleEditorSave = async (data: Omit<Note, "id" | "createdAt" | "updatedAt" | "lastEditedAt" | "version">) => {
     try {
+      let savedNote: Note;
+
       if (editingNote) {
-        await updateNote(editingNote.id, data);
+        savedNote = await updateNote(editingNote.id, data);
       } else {
-        await createNote(data);
+        savedNote = await createNote(data);
       }
+
       setIsEditorOpen(false);
+      return savedNote;
     } catch (err) {
       console.error("Failed to save note:", err);
+      throw err;
     }
   };
 

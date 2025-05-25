@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <AppDataProvider>
-          <div className="min-h-screen bg-background text-foreground">{children}</div>
+          <div className="min-h-screen bg-background text-foreground w-4/5 m-auto">{children}</div>
           <Toaster />
         </AppDataProvider>
       </body>

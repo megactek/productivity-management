@@ -39,7 +39,7 @@ export function Dialog({ isOpen, onClose, title, description, children, classNam
       <div className="absolute inset-0 z-0" onClick={onClose} aria-hidden="true" />
       <div
         className={cn(
-          "relative z-10 w-full max-w-md max-h-[90vh] rounded-lg border bg-card p-6 shadow-lg animate-slide-up overflow-hidden flex flex-col",
+          "relative z-10 w-full max-w-md  rounded-lg border bg-card p-6 shadow-lg animate-slide-up overflow-hidden flex flex-col",
           className
         )}
       >
